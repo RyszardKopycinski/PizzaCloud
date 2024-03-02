@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>Pizza Cloud</title>
+	<link rel="stylesheet" th:href="@{/styles.css"/>
+</head>
+<body>
+<div class="content">
+	<form method="POST" th:action="@{/orders}" th:object="${order}">
+		<h1>Zamów przygotowaną pizzę!</h1>
+		<img th:src="@/images/demo-pizza.jpg"/>
+		
+	</form>
+</div>
+</body>
+</html>
