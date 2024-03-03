@@ -2,7 +2,15 @@ div.content{
     width: 800px;
     margin: auto;
     border: 2px solid black;
+    text-align: center;
 }
+
+div.form{
+    width: 400px;
+    margin: auto;
+    text-align: left;
+}
+
 .title{
     text-align: center;
 }
