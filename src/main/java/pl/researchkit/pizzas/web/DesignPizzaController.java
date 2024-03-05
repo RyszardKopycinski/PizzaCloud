@@ -1,8 +1,10 @@
 package pl.researchkit.pizzas.web;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,13 +68,17 @@ public class DesignPizzaController {
     @GetMapping
     public String showDesignForm(Model model) {
         model.addAttribute("design", new Pizza());
-        return "design";
+        return "designForm";
     }
 
     @PostMapping
-    public String processDesign(Pizza pizzaDesign) {
-
-        log.info("Przetwarzanie projektu pizza: " + pizzaDesign);
+    public String processDesign(@Valid @ModelAttribute("design") Pizza design, Errors errors, Model model) {
+        if (errors.hasErrors()) {
+            log.info("Błędy design: " + errors);
+            return "designForm";
+        }
+        //zapis Pizzy
+        log.info("Przetwarzanie projektu pizza: " + design);
         return "redirect:/orders/current";
     }
 

@@ -9,7 +9,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootApplication
 public class PizzaCloudApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(PizzaCloudApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(PizzaCloudApplication.class, args);
+    }
 }
