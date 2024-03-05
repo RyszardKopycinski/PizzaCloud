@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import pl.researchkit.pizzas.Ingredient;
 import pl.researchkit.pizzas.Pizza;
+import pl.researchkit.pizzas.data.IngredientRepository;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +24,12 @@ import static pl.researchkit.pizzas.Ingredient.Type;
 @Controller
 @RequestMapping("/design")
 public class DesignPizzaController {
+
+    private final IngredientRepository ingredientRepo;
+
+    public DesignPizzaController(IngredientRepository ingredientRepo) {
+        this.ingredientRepo = ingredientRepo;
+    }
 
     @ModelAttribute
     public void addIngredientsToModel(Model model) {
@@ -67,7 +75,14 @@ public class DesignPizzaController {
 
     @GetMapping
     public String showDesignForm(Model model) {
-        model.addAttribute("design", new Pizza());
+        List<Ingredient> ingredients = new ArrayList<>();
+        ingredientRepo.findAll()
+                      .forEach(ingredients::add);
+        Type[] types = Type.values();
+        for (Type type : types) {
+            model.addAttribute(type.toString()
+                                   .toLowerCase(), filterByType(ingredients, type));
+        }
         return "designForm";
     }
 
