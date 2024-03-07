@@ -2,19 +2,18 @@ package pl.researchkit.pizzas.web;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import pl.researchkit.pizzas.Ingredient;
+import pl.researchkit.pizzas.Order;
 import pl.researchkit.pizzas.Pizza;
 import pl.researchkit.pizzas.data.IngredientRepository;
+import pl.researchkit.pizzas.data.PizzaRepository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,76 +22,50 @@ import static pl.researchkit.pizzas.Ingredient.Type;
 @Slf4j
 @Controller
 @RequestMapping("/design")
+@SessionAttributes("order")
 public class DesignPizzaController {
 
     private final IngredientRepository ingredientRepo;
+    private       PizzaRepository      designRepo;
 
-    public DesignPizzaController(IngredientRepository ingredientRepo) {
+    @Autowired
+    public DesignPizzaController(IngredientRepository ingredientRepo, PizzaRepository designRepo) {
         this.ingredientRepo = ingredientRepo;
+        this.designRepo = designRepo;
     }
 
-    @ModelAttribute
-    public void addIngredientsToModel(Model model) {
-        List<Ingredient> ingredients = Arrays.asList(new Ingredient("SZYN", "szynka", Type.PROTEIN),
-                                                     new Ingredient("WOLO", "wołowina", Type.PROTEIN),
-                                                     new Ingredient("KURC", "kurczak", Type.PROTEIN),
-                                                     new Ingredient("GRKU", "grillowany kurczak", Type.PROTEIN),
-                                                     new Ingredient("PEPP", "pepperoni", Type.PROTEIN),
-                                                     new Ingredient("SZPA", "szynka parmeńska", Type.PROTEIN),
-                                                     new Ingredient("BOCZ", "boczek", Type.PROTEIN),
-                                                     new Ingredient("SPPI", "spinata picante", Type.PROTEIN),
-                                                     new Ingredient("CHOR", "chorizo", Type.PROTEIN),
-                                                     new Ingredient("PAPR", "papryka", Type.VEGGIE),
-                                                     new Ingredient("PCHI", "papryczki chilli", Type.VEGGIE),
-                                                     new Ingredient("CEBU", "cebula", Type.VEGGIE),
-                                                     new Ingredient("CCEB", "czerwona cebula", Type.VEGGIE),
-                                                     new Ingredient("POMC", "pomidorki cherry", Type.VEGGIE),
-                                                     new Ingredient("KUKU", "kukurydza", Type.VEGGIE),
-                                                     new Ingredient("BAZY", "bazylia", Type.VEGGIE),
-                                                     new Ingredient("ANAN", "ananas", Type.VEGGIE),
-                                                     new Ingredient("COLI", "czarne oliwki", Type.VEGGIE),
-                                                     new Ingredient("ZOLI", "zielone oliwki", Type.VEGGIE),
-                                                     new Ingredient("PIEC", "pieczarki", Type.VEGGIE),
-                                                     new Ingredient("JALA", "jalapeno", Type.VEGGIE),
-                                                     new Ingredient("PEST", "pesto", Type.VEGGIE),
-                                                     new Ingredient("RUKO", "rukola", Type.VEGGIE),
-                                                     new Ingredient("SZCZ", "szczypior", Type.VEGGIE),
-                                                     new Ingredient("MOZZ", "mozzarella", Type.CHEESE),
-                                                     new Ingredient("RICO", "ricotta", Type.CHEESE),
-                                                     new Ingredient("GORG", "gorgonzola", Type.CHEESE),
-                                                     new Ingredient("FETA", "feta", Type.CHEESE),
-                                                     new Ingredient("PARM", "parmezan", Type.CHEESE),
-                                                     new Ingredient("S---", "brak sosu", Type.SAUCE),
-                                                     new Ingredient("SPOM", "sos pomidorowy", Type.SAUCE),
-                                                     new Ingredient("SBBQ", "sos BBQ", Type.SAUCE),
-                                                     new Ingredient("SSMI", "sos śmietanowy", Type.SAUCE));
-        Type[] types = Type.values();
-        for (Type type : types) {
-            model.addAttribute(type.toString()
-                                   .toLowerCase(), filterByType(ingredients, type));
-        }
+    @ModelAttribute(name = "order")
+    public Order order() {
+        return new Order();
+    }
+
+    @ModelAttribute(name = "pizza")
+    public Pizza pizza() {
+        return new Pizza();
     }
 
     @GetMapping
     public String showDesignForm(Model model) {
         List<Ingredient> ingredients = new ArrayList<>();
         ingredientRepo.findAll()
-                      .forEach(ingredients::add);
-        Type[] types = Type.values();
+                      .forEach(i -> ingredients.add(i));
+        Type[] types = Ingredient.Type.values();
         for (Type type : types) {
             model.addAttribute(type.toString()
                                    .toLowerCase(), filterByType(ingredients, type));
         }
-        return "designForm";
+        return "design";
     }
 
     @PostMapping
-    public String processDesign(@Valid @ModelAttribute("design") Pizza design, Errors errors, Model model) {
+    public String processDesign(@Valid Pizza design, Errors errors, @ModelAttribute Order order) {
         if (errors.hasErrors()) {
             log.info("Błędy design: " + errors);
-            return "designForm";
+            return "design";
         }
         //zapis Pizzy
+        Pizza saved = designRepo.save(design);
+        order.addDesign(saved);
         log.info("Przetwarzanie projektu pizza: " + design);
         return "redirect:/orders/current";
     }
